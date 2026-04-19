@@ -11,6 +11,7 @@
                          <TrayIcon.Menu>
                              <NativeMenu>
                                  <NativeMenuItem Header="Exit" Click="ExitMenuItem_OnClick" />
+                                 <NativeMenuItem Header="Open Settings" Click="OpenSettingsMenuItem_OnClick" />
                              </NativeMenu>
                          </TrayIcon.Menu>
                      </TrayIcon>

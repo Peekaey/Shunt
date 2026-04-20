@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Shunt.Main.Interfaces;
 using Shunt.Main.Services;
 using System;
-using Shunt.Main.Services;
 
 namespace Shunt.Main;
 
@@ -26,13 +25,16 @@ class Program
         Host.StopAsync().GetAwaiter().GetResult();
         Host.Dispose();
     }
+    
 
     private static IHostBuilder CreateHostBuilder(string[] args)
         => Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
             .ConfigureServices(services =>
             {
+                services.AddHttpClient();
                 services.AddSingleton<IGameService, GameService>();
-                services.AddHostedService<BackgroundWorkerService>();
+                services.AddSingleton<ISecretStoreService, SecretStoreService>();
+                // services.AddHostedService<BackgroundWorkerService>();
             });
 
     // Avalonia configuration, don't remove; also used by visual designer.
@@ -45,4 +47,6 @@ class Program
 #endif
             .WithInterFont()
             .LogToTrace();
+    
+
 }

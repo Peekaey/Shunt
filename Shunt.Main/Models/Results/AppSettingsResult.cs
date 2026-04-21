@@ -1,6 +1,6 @@
 using System;
 
-namespace Shunt.Main.Models;
+namespace Shunt.Main.Models.Results;
 
 /// <summary>
 /// A specialized, allocation-free result for API Key operations.

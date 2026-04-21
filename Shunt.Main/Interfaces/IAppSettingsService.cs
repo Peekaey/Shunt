@@ -1,6 +1,11 @@
+using System.Threading.Tasks;
+using Shunt.Main.Models;
+using Shunt.Main.Models.Results;
+
 namespace Shunt.Main.Interfaces;
 
-public class IAppSettingsService
+public interface IAppSettingsService
 {
-    
+    Task<AppSettingsResult> GetStoredAppSettings();
+    Task<ServiceResult> SaveAppSettings(AppSettings appSettings);
 }

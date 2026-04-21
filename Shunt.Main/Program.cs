@@ -32,6 +32,8 @@ class Program
             .ConfigureServices(services =>
             {
                 services.AddHttpClient();
+                services.AddSingleton<IAppSettingsService, AppSettingsService>();
+                services.AddSingleton<ApiManager>();
                 services.AddSingleton<IGameService, GameService>();
                 services.AddSingleton<ISecretStoreService, SecretStoreService>();
                 // services.AddHostedService<BackgroundWorkerService>();

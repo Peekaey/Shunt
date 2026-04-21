@@ -7,6 +7,7 @@ using DBus.Services.Secrets;
 using Microsoft.Extensions.Logging;
 using Shunt.Main.Interfaces;
 using Shunt.Main.Models;
+using Shunt.Main.Models.Results;
 
 namespace Shunt.Main.Services;
 
@@ -24,7 +25,7 @@ public class SecretStoreService : ISecretStoreService
         _logger = logger;
     }
     
-    public async Task<SecretStoreResult> SaveApiKey(string apiKey)
+    public async Task<ServiceResult> SaveApiKey(string apiKey)
     {
         try
         {
@@ -35,18 +36,18 @@ public class SecretStoreService : ISecretStoreService
             var collection = await secretService.GetDefaultCollectionAsync();
             if (collection == null)
             {
-                return SecretStoreResult.Failure("Failed to access the default secret collection.");
+                return ServiceResult.Failure("Failed to access the default secret collection.");
             }
 
             var secretBytes = Encoding.UTF8.GetBytes(apiKey);
 
             await collection.CreateItemAsync(KeyLabel, _searchAttributes, secretBytes, "text/plain", replace: true);
             // Code smell - fix later
-            return SecretStoreResult.Success("");
+            return ServiceResult.Success();
         }
         catch (Exception e)
         {
-            return SecretStoreResult.Failure(e.Message);
+            return ServiceResult.Failure(e.Message);
         }
     }
 

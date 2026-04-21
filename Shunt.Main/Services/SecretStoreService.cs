@@ -42,7 +42,6 @@ public class SecretStoreService : ISecretStoreService
             var secretBytes = Encoding.UTF8.GetBytes(apiKey);
 
             await collection.CreateItemAsync(KeyLabel, _searchAttributes, secretBytes, "text/plain", replace: true);
-            // Code smell - fix later
             return ServiceResult.Success();
         }
         catch (Exception e)

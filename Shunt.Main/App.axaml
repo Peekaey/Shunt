@@ -10,6 +10,9 @@
                                ToolTipText="Shunt">
                          <TrayIcon.Menu>
                              <NativeMenu>
+                                 <NativeMenuItem Header="Load Default Model" Click="ModelQuickLoadMenuItem_OnClick"/>
+                                 <NativeMenuItem Header="Unload Model" Click="ModelQuickUnloadMenuItem_OnClick"/>
+                                 <NativeMenuItemSeparator></NativeMenuItemSeparator>
                                  <NativeMenuItem Header="Open Settings" Click="OpenSettingsMenuItem_OnClick" />
                                  <NativeMenuItem Header="Exit" Click="ExitMenuItem_OnClick" />
                              </NativeMenu>

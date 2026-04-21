@@ -1,11 +1,14 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shunt.Main.Interfaces;
 using Shunt.Main.Models;
+using Shunt.Main.Models.Requests;
 
 namespace Shunt.Main.Services;
 
@@ -102,7 +105,55 @@ public class ApiManager
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, endpointUrl);
-            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
+            if (!string.IsNullOrEmpty(secretResult.Key))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", secretResult.Key);
+            }
+
+            using var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return ServiceResult.Failure($"API request failed with status code: {response.StatusCode}");
+            }
+
+            return ServiceResult.Success();
+        }
+        catch (Exception e)
+        {
+            return ServiceResult.Failure(e.Message);
+        }
+    }
+
+    public async Task<ServiceResult> UnloadModel()
+    {
+        var settingsResult = await _settingsService.GetStoredAppSettings();
+        if (settingsResult.IsFailure)
+        {
+            _logger.LogWarning("Could not retrieve app settings: {Error}", settingsResult.ErrorMessage);
+        }
+        
+        var secretResult = await _secretStoreService.GetApiKey();
+        if (secretResult.IsFailure)
+        {
+            _logger.LogWarning("Could not retrieve API key: {Error}", secretResult.ErrorMessage);
+        }
+        
+        var settings = settingsResult.AppSettings;
+        string endpointUrl = $"http://{settings.ServerIp}:{settings.ServerPort}/api/v1/models/unload";
+        
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpointUrl);
+            var unloadRequest = new UnloadModelRequest
+            {
+                InstanceId = settings.DefaultModel
+            };
+            
+            request.Content = JsonContent.Create(unloadRequest, UnloadModelRequestContext.Default.UnloadModelRequest);
+            
+            
             if (!string.IsNullOrEmpty(secretResult.Key))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", secretResult.Key);

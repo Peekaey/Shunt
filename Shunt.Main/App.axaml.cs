@@ -54,4 +54,20 @@ public partial class App : Application
             }
         }
     }
+
+    private void ModelQuickUnloadMenuItem_OnClick(object? sender, EventArgs e)
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            
+        }
+    }
+
+    private void ModelQuickLoadMenuItem_OnClick(object? sender, EventArgs e)
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            
+        }
+    }
 }

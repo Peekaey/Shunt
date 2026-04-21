@@ -6,7 +6,7 @@ namespace Shunt.Main.Models;
 public class AppSettings
 {
     public int ServerPort { get; set; }
-    public IPAddress ServerIp { get; set; }
+    public string ServerIp { get; set; }
     public string DefaultModel { get; set; }
     public int ContextTokenLength { get; set; }
 }

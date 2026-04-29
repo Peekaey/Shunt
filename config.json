@@ -1,5 +1,0 @@
-{
-  "ServerPort": 1234,
-  "ServerIp": "http://127.0.0.1",
-  "ContextTokenLength": 4096
-}

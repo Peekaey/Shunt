@@ -8,4 +8,5 @@ public interface IAppSettingsService
 {
     Task<AppSettingsResult> GetStoredAppSettings();
     Task<ServiceResult> SaveAppSettings(AppSettings appSettings);
+    Task<AppSettingsResult>ClearAndSaveDefaultAppSettings(AppSettings appSettings);
 }

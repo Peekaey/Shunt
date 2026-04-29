@@ -2,8 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Shunt.Main.ViewModels"
         mc:Ignorable="d"
         x:Class="Shunt.Main.Views.SettingsWindow"
+        x:DataType="vm:SettingsWindowViewModel"
         Width="420"
         Height="420"
         MinWidth="420"
@@ -24,34 +26,61 @@
                        Margin="0,0,0,8" />
 
             <TextBlock Text="Server Port"
-                       TextAlignment="Center"
-                       HorizontalAlignment="Center" />
+                        TextAlignment="Center"
+                        HorizontalAlignment="Center" />
             <TextBox Width="260"
-                     HorizontalAlignment="Center"
-                     HorizontalContentAlignment="Center" />
+                      Text="{Binding ServerPortText}"
+                      HorizontalAlignment="Center"
+                      HorizontalContentAlignment="Center" />
 
             <TextBlock Text="Server IP"
-                       TextAlignment="Center"
-                       HorizontalAlignment="Center" />
+                        TextAlignment="Center"
+                        HorizontalAlignment="Center" />
             <TextBox Width="260"
-                     HorizontalAlignment="Center"
-                     HorizontalContentAlignment="Center" />
+                      Text="{Binding DefaultServiceIp}"
+                      HorizontalAlignment="Center"
+                      HorizontalContentAlignment="Center" />
 
-            <TextBlock Text="Profiles"
-                       TextAlignment="Center"
-                       HorizontalAlignment="Center" />
-            <ListBox Width="260"
-                     Height="90"
-                     HorizontalAlignment="Center" />
+            <TextBlock Text="Default Model"
+                        TextAlignment="Center"
+                        HorizontalAlignment="Center" />
+            <TextBox Width="260"
+                      Text="{Binding DefaultModel}"
+                      HorizontalAlignment="Center"
+                      HorizontalContentAlignment="Center" />
 
             <TextBlock Text="Context Token Length"
+                        TextAlignment="Center"
+                        HorizontalAlignment="Center" />
+            <TextBox Width="260"
+                      Text="{Binding ContextTokenLengthText}"
+                      HorizontalAlignment="Center"
+                      HorizontalContentAlignment="Center" />
+            
+            <TextBlock Text="API Key"
                        TextAlignment="Center"
                        HorizontalAlignment="Center" />
             <TextBox Width="260"
+                     Text="{Binding ApiKey}"
                      HorizontalAlignment="Center"
                      HorizontalContentAlignment="Center" />
+
+            <CheckBox Content="Enable Auto Load/Unload"
+                       IsChecked="{Binding EnableAutoLoad}"
+                       HorizontalAlignment="Center" />
+
+            <Button Content="Save"
+                     Command="{Binding SaveSettingsCommand}"
+                     HorizontalAlignment="Center"
+                     Margin="0,8,0,0" />
+
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="Red"
+                       FontSize="12"
+                       TextAlignment="Center"
+                       HorizontalAlignment="Center"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
         </StackPanel>
     </Grid>
 </Window>
-
 

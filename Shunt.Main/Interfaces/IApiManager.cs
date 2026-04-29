@@ -7,4 +7,5 @@ public interface IApiManager
 {
     Task<ModelListResponse?> GetEndpointModels();
     Task<ServiceResult> LoadModel();
+    Task<ServiceResult> UnloadModel();
 }

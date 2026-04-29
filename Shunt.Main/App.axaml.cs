@@ -3,6 +3,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Microsoft.Extensions.DependencyInjection;
+using Shunt.Main.Interfaces;
+using Shunt.Main.Models;
+using Shunt.Main.Services;
+using Shunt.Main.ViewModels;
 using Shunt.Main.Views;
 
 namespace Shunt.Main;
@@ -10,6 +15,8 @@ namespace Shunt.Main;
 public partial class App : Application
 {
     private SettingsWindow? _settingsWindow;
+    private IServiceProvider _serviceProvider;
+    public static IServiceProvider ServiceProvider { get; private set; }
 
     public override void Initialize()
     {
@@ -18,6 +25,9 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        var serviceProvider = ConfigureServices();
+        ServiceProvider = serviceProvider;
+        ReadSavedSettingsToMemory();
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -59,7 +69,8 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            
+            var apiManager = _serviceProvider.GetService<IApiManager>();
+            apiManager.UnloadModel();
         }
     }
 
@@ -67,7 +78,65 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            
+            var apiManager = _serviceProvider.GetService<IApiManager>();
+            apiManager.LoadModel();
+
         }
     }
+
+    private void ReadSavedSettingsToMemory()
+    {
+        using (var scope = _serviceProvider.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            var appSettingsService = services.GetRequiredService<IAppSettingsService>();
+            var cachedAppSettings = services.GetRequiredService<CachedAppSettings>();
+            var settingsResult = appSettingsService.GetStoredAppSettings().GetAwaiter().GetResult();
+
+            if (settingsResult.IsSuccess)
+            {
+                var loaded = settingsResult.AppSettings;
+                cachedAppSettings.ServerIp = loaded.ServerIp;
+                cachedAppSettings.ServerPort = loaded.ServerPort;
+                cachedAppSettings.DefaultModel = loaded.DefaultModel;
+                cachedAppSettings.ContextTokenLength = loaded.ContextTokenLength;
+                cachedAppSettings.EnableAutoLoadUnload = loaded.EnableAutoLoadUnload;
+                return;
+            }
+            else
+            {
+                var result = appSettingsService.ClearAndSaveDefaultAppSettings(new AppSettings()).GetAwaiter().GetResult();
+                if (!result.IsSuccess)
+                {
+                    throw new InvalidOperationException($"Failed to save default app settings: {result.ErrorMessage}");
+                }
+                
+                var loaded = result.AppSettings;
+                cachedAppSettings.ServerIp = loaded.ServerIp;
+                cachedAppSettings.ServerPort = loaded.ServerPort;
+                cachedAppSettings.DefaultModel = loaded.DefaultModel;
+                cachedAppSettings.ContextTokenLength = loaded.ContextTokenLength;
+                cachedAppSettings.EnableAutoLoadUnload = loaded.EnableAutoLoadUnload;
+            }
+
+        }
+    }
+
+    public IServiceProvider ConfigureServices()
+    {
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+        services.AddSingleton<IAppSettingsService, AppSettingsService>();
+        services.AddSingleton<IApiManager,ApiManager>();
+        services.AddSingleton<IGameService, GameService>();
+        services.AddSingleton<ISecretStoreService, SecretStoreService>();
+        services.AddSingleton<CachedAppSettings>();
+        // services.AddHostedService<BackgroundWorkerService>();
+        services.AddTransient<SettingsWindowViewModel>();
+        
+        _serviceProvider = services.BuildServiceProvider();
+        return _serviceProvider;
+    }
+
+
 }

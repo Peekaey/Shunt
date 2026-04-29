@@ -31,12 +31,6 @@ class Program
         => Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
             .ConfigureServices(services =>
             {
-                services.AddHttpClient();
-                services.AddSingleton<IAppSettingsService, AppSettingsService>();
-                services.AddSingleton<ApiManager>();
-                services.AddSingleton<IGameService, GameService>();
-                services.AddSingleton<ISecretStoreService, SecretStoreService>();
-                // services.AddHostedService<BackgroundWorkerService>();
             });
 
     // Avalonia configuration, don't remove; also used by visual designer.

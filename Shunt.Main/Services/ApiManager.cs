@@ -9,10 +9,11 @@ using Microsoft.Extensions.Logging;
 using Shunt.Main.Interfaces;
 using Shunt.Main.Models;
 using Shunt.Main.Models.Requests;
+using Shunt.Main.Utilities;
 
 namespace Shunt.Main.Services;
 
-public class ApiManager 
+public class ApiManager : IApiManager
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<ApiManager> _logger;
@@ -47,12 +48,16 @@ public class ApiManager
             return null;
         }
 
-        var settings = settingsResult.AppSettings;
-        string endpointUrl = $"http://{settings.ServerIp}:{settings.ServerPort}/api/v1/models";
+        var settings = settingsResult.AppSettings!;
+        if (!ServerAddressHelper.TryBuildEndpointUri(settings.ServerIp, settings.ServerPort, "api/v1/models", out var endpointUri, out var endpointError))
+        {
+            _logger.LogError("Invalid server endpoint configuration: {Error}", endpointError);
+            return null;
+        }
 
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, endpointUrl);
+            using var request = new HttpRequestMessage(HttpMethod.Get, endpointUri);
             
             if (!string.IsNullOrEmpty(secretResult.Key))
             {
@@ -80,7 +85,7 @@ public class ApiManager
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while fetching models from {Url}", endpointUrl);
+            _logger.LogError(ex, "Error occurred while fetching models from {Url}", endpointUri);
         }
 
         return null;
@@ -92,20 +97,36 @@ public class ApiManager
         if (settingsResult.IsFailure)
         {
             _logger.LogWarning("Could not retrieve app settings: {Error}", settingsResult.ErrorMessage);
+            return ServiceResult.Failure(settingsResult.ErrorMessage);
         }
         
         var secretResult = await _secretStoreService.GetApiKey();
         if (secretResult.IsFailure)
         {
             _logger.LogWarning("Could not retrieve API key: {Error}", secretResult.ErrorMessage);
+            return ServiceResult.Failure(secretResult.ErrorMessage);
         }
         
-        var settings = settingsResult.AppSettings;
-        string endpointUrl = $"http://{settings.ServerIp}:{settings.ServerPort}/api/v1/models/load";
+        var settings = settingsResult.AppSettings!;
+        if (!ServerAddressHelper.TryBuildEndpointUri(settings.ServerIp, settings.ServerPort, "api/v1/models/load", out var endpointUri, out var endpointError))
+        {
+            _logger.LogError("Invalid server endpoint configuration: {Error}", endpointError);
+            return ServiceResult.Failure(endpointError);
+        }
+
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, endpointUrl);
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpointUri);
             request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
+            var loadRequest = new LoadModelRequest
+            {
+                Model = settings.DefaultModel,
+                ContextLength = settings.ContextTokenLength,
+                EchoLoadConfig = false
+            };
+
+            request.Content = JsonContent.Create(loadRequest, LoadModelRequestContext.Default.LoadModelRequest);
+            
             if (!string.IsNullOrEmpty(secretResult.Key))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", secretResult.Key);
@@ -132,20 +153,26 @@ public class ApiManager
         if (settingsResult.IsFailure)
         {
             _logger.LogWarning("Could not retrieve app settings: {Error}", settingsResult.ErrorMessage);
+            return ServiceResult.Failure(settingsResult.ErrorMessage);
         }
         
         var secretResult = await _secretStoreService.GetApiKey();
         if (secretResult.IsFailure)
         {
             _logger.LogWarning("Could not retrieve API key: {Error}", secretResult.ErrorMessage);
+            return ServiceResult.Failure(secretResult.ErrorMessage);
         }
         
-        var settings = settingsResult.AppSettings;
-        string endpointUrl = $"http://{settings.ServerIp}:{settings.ServerPort}/api/v1/models/unload";
+        var settings = settingsResult.AppSettings!;
+        if (!ServerAddressHelper.TryBuildEndpointUri(settings.ServerIp, settings.ServerPort, "api/v1/models/unload", out var endpointUri, out var endpointError))
+        {
+            _logger.LogError("Invalid server endpoint configuration: {Error}", endpointError);
+            return ServiceResult.Failure(endpointError);
+        }
         
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, endpointUrl);
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpointUri);
             var unloadRequest = new UnloadModelRequest
             {
                 InstanceId = settings.DefaultModel

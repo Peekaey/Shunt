@@ -35,7 +35,7 @@ public class AppSettingsService : IAppSettingsService
                 return AppSettingsResult.Failure("Config file does not exist.");
             }
 
-            string json = await File.ReadAllTextAsync(_configFilePath);
+            string json = await File.ReadAllTextAsync(_configFilePath).ConfigureAwait(false);
             var settings = JsonSerializer.Deserialize(json, AppSettingsContext.Default.AppSettings);
             
             return settings != null 
@@ -54,13 +54,38 @@ public class AppSettingsService : IAppSettingsService
         try
         {
             string json = JsonSerializer.Serialize(appSettings, AppSettingsContext.Default.AppSettings);
-            await File.WriteAllTextAsync(_configFilePath, json);
+            await File.WriteAllTextAsync(_configFilePath, json).ConfigureAwait(false);
             return ServiceResult.Success();
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error saving app settings");
             return ServiceResult.Failure(e.Message);
+        }
+    }
+
+    public async Task<AppSettingsResult> ClearAndSaveDefaultAppSettings(AppSettings appSettings)
+    {
+        try
+        {
+            if (File.Exists(_configFilePath))
+            {   // We assume the file is corrupt/not edited correctly
+                // Refresh and save to default
+                File.Delete(_configFilePath);
+            }
+            
+            var saveResult = await SaveAppSettings(appSettings);
+            if (!saveResult.IsSuccess)
+            {
+                return AppSettingsResult.Failure($"Failed to save default app settings: {saveResult.ErrorMessage}");
+            }
+            
+            return AppSettingsResult.Success(appSettings);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error clearing and saving default app settings");
+            return AppSettingsResult.Failure(e.Message);
         }
     }
 }

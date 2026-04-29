@@ -16,8 +16,8 @@ public readonly struct ServiceResult
     public bool IsSuccess => _isSuccess;
     public bool IsError => _error != null;
     
-    public static ServiceResult Success() => new (null, false);
-    public static ServiceResult Failure(string errorMessage) => new (errorMessage, true);
+    public static ServiceResult Success() => new (null, true);
+    public static ServiceResult Failure(string errorMessage) => new (errorMessage, false);
     
     public string ErrorMessage => !_isSuccess 
         ? _error ?? "Unknown Error" 
